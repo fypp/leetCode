@@ -3,5 +3,7 @@
 */.iml
 
 python/*/*.pyc
+python/venv
+python/Hello.py
 
 data/*
