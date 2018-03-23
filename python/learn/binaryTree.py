@@ -4,6 +4,7 @@ class TreeNode:
         self.val = x
         self.left = None
         self.right = None
+        self.next = None
 
 
 class Solution:
@@ -195,29 +196,33 @@ class Solution:
     # @param root, a tree link node
     # @return nothing
     def connect(self, root):
-        if root is None:
+        if not root:
             return
-        if root.left is not None:
-            if root.right is not None:
+
+        def get_next_right(node_next, node_to_point):
+            if not node_next:
+                return
+            if node_next.left:
+                node_to_point.next = node_next.left
+            elif node_next.right:
+                node_to_point.next = node_next.right
+            else:
+                get_next_right(node_next.next, node_to_point)
+
+        if root.left:
+            if root.right:
                 root.left.next = root.right
-            elif root.next is not None:
-                if root.next.left is not None:
-                    root.left.next = root.next.left
-                elif root.next.right is not None:
-                    root.left.next = root.next.right
-        if root.right is not None:
-            if root.next is not None:
-                if root.next.left is not None:
-                    root.right.next = root.next.left
-                elif root.next.right is not None:
-                    root.right.next = root.next.right
-        self.connect(root.left)
+            else:
+                get_next_right(root.next, root.left)
+        if root.right:
+            get_next_right(root.next, root.right)
         self.connect(root.right)
-        return
+        self.connect(root.left)
+        # @connect(root.right)should be the first!!!
 
 
 if __name__ == '__main__':
-    t1 = [9, 3, 15, 20, 7]
-    t2 = [9, 15, 7, 20, 3]
+    t1 = [2, 0, 1, 1, 7, 0, 2, 9, 3, 8, 1, 8]
+    t2 = [2, 0, 1, 0, 7, 1, 9, 8, 8, 1, 3, 2]
 
     tree = Solution().buildTree(t1, t2)
