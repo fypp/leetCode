@@ -4,7 +4,6 @@ class TreeNode:
         self.val = x
         self.left = None
         self.right = None
-        self.next = None
 
 
 class Solution:
@@ -220,9 +219,99 @@ class Solution:
         self.connect(root.left)
         # @connect(root.right)should be the first!!!
 
+    def findAncestorAndDepth(self, root, p, depth_raw):
+
+        ancestor, depth = None, 0
+        if root:
+            if root.left:
+                if root.left == p:
+                    ancestor, depth = root, depth_raw + 1
+                    return ancestor, depth
+                elif ancestor is None:
+                    ancestor, depth = self.findAncestorAndDepth(root.left, p, depth_raw + 1)
+            if root.right:
+                if root.right == p:
+                    ancestor, depth = root, depth_raw + 1
+                    return ancestor, depth
+                elif ancestor is None:
+                    ancestor, depth = self.findAncestorAndDepth(root.right, p, depth_raw + 1)
+        return ancestor, depth
+
+    def lowestCommonAncestor(self, root, p, q):
+        """
+        :type root: TreeNode
+        :type p: TreeNode
+        :type q: TreeNode
+        :rtype: TreeNode
+        """
+        ancestor_p, depth_p = self.findAncestorAndDepth(root, p, 0)
+        ancestor_q, depth_q = self.findAncestorAndDepth(root, q, 0)
+
+        if depth_p == depth_q:
+            if ancestor_p == ancestor_q:
+                return ancestor_q
+            else:
+                return self.lowestCommonAncestor(root, ancestor_p, ancestor_q)
+        elif depth_p > depth_q:
+            if q == ancestor_p:
+                return q
+            else:
+                return self.lowestCommonAncestor(root, ancestor_p, q)
+        elif depth_p < depth_q:
+            if p == ancestor_q:
+                return p
+            else:
+                return self.lowestCommonAncestor(root, p, ancestor_q)
+
+
+class Codec:
+    def preTravel(self, root):
+        nodes = []
+        if root:
+            nodes.append(str(root.val))
+            nodes += self.preTravel(root.left)
+            nodes += self.preTravel(root.right)
+        else:
+            return ["#"]
+        return nodes
+
+    def serialize(self, root):
+        """Encodes a tree to a single string.
+
+        :type root: TreeNode
+        :rtype: str
+        """
+        return ",".join(self.preTravel(root))
+
+    def nodeToTree(self, nodes):
+
+        val = nodes.popleft()
+
+        if val == "#":
+            return None
+        root = TreeNode(int(val))
+        root.left = self.nodeToTree(nodes)
+        root.right = self.nodeToTree(nodes)
+
+        return root
+
+
+    def deserialize(self, data):
+        """Decodes your encoded data to tree.
+
+        :type data: str
+        :rtype: TreeNode
+        """
+        import collections
+        nodes = collections.deque(data.split(","))
+        return self.nodeToTree(nodes)
+
+
+
+
 
 if __name__ == '__main__':
-    t1 = [2, 0, 1, 1, 7, 0, 2, 9, 3, 8, 1, 8]
-    t2 = [2, 0, 1, 0, 7, 1, 9, 8, 8, 1, 3, 2]
+    t1 = [2, 1, 4, 3, 5]
+    t2 = [2, 4, 5, 3, 1]
 
     tree = Solution().buildTree(t1, t2)
