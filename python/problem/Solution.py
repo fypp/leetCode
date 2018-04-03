@@ -1,4 +1,3 @@
-
 class Solution(object):
     def twoSum(self, nums, target):
         """
@@ -12,8 +11,8 @@ class Solution(object):
                 inx_target = nums.index(num_target)
                 if inx_target != inx:
                     return [inx, inx_target]
-                elif num_target in nums[inx+1:]:
-                    inx_target = nums.index(num_target, inx+1)
+                elif num_target in nums[inx + 1:]:
+                    inx_target = nums.index(num_target, inx + 1)
                     return [inx, inx_target]
 
     def removeDuplicates(self, nums):
@@ -28,7 +27,7 @@ class Solution(object):
 
         last_value = nums[0]
         ix = 1
-        for i in range(1,len(nums)):
+        for i in range(1, len(nums)):
 
             if nums[ix] == last_value:
                 nums.pop(ix)
@@ -42,8 +41,8 @@ class Solution(object):
         :type prices: List[int]
         :rtype: int
         """
-        prices_diff = [prices[i + 1]-prices[i] for i in range(len(prices)-1)]
-        prices_diff = [x if x>0 else 0 for x in prices_diff]
+        prices_diff = [prices[i + 1] - prices[i] for i in range(len(prices) - 1)]
+        prices_diff = [x if x > 0 else 0 for x in prices_diff]
         return sum(prices_diff)
 
     def rotate(self, nums, k):
@@ -56,3 +55,45 @@ class Solution(object):
             for i in range(k):
                 val = nums.pop(-1)
                 nums.insert(0, val)
+
+    def containsDuplicate(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: bool
+        """
+        num_dict = {}
+        for num in nums:
+            if num in num_dict:
+                return True
+            else:
+                num_dict[num] = 1
+        return False
+
+    def singleNumber(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
+        num_dict = {}
+        for num in nums:
+            if num in num_dict:
+                num_dict.pop(num)
+            else:
+                num_dict[num] = 1
+        return list(num_dict.keys())[0]
+
+
+    def intersect(self, nums1, nums2):
+        """
+        :type nums1: List[int]
+        :type nums2: List[int]
+        :rtype: List[int]
+        """
+        result = []
+        for num1 in nums1:
+            if num1 in nums2:
+                result.append(num1)
+                nums2.pop(nums2.index(num1))
+        return result
+
+
