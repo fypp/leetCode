@@ -326,13 +326,468 @@ class Solution:
             tmp.remove(v)
             result_next = self.permuteUnique(tmp)
             for res in result_next:
-                results.append([v]+res)
+                results.append([v] + res)
         init = []
         for result in results:
             if result not in init:
                 init.append(result)
         return init
 
+    def generateMatrix(self, n):
+        """
+        :type n: int
+        :rtype: List[List[int]]
+        """
+        if n < 1:
+            return [[]]
 
-c = Solution().permuteUnique([1,1,2])
-print(c)
+        init = []
+        for i in range(n):
+            init.append([1] * n)
+        ix0 = 0
+        ix1 = n - 1
+        jx0 = 0
+        jx1 = n - 1
+        i, j, v = 0, 0, 1
+        while ix0 < ix1 and jx0 < jx1:
+            if i == ix0 and j < jx1:
+                init[i][j] = v
+                j += 1
+                v += 1
+            if j == jx1 and i < ix1:
+                init[i][j] = v
+                i += 1
+                v += 1
+            if i == ix1 and j > jx0:
+                init[i][j] = v
+                j -= 1
+                v += 1
+            if j == jx0 and i > ix0:
+                init[i][j] = v
+                i -= 1
+                v += 1
+            if i == ix0 and j == jx0:
+                ix0 += 1
+                jx0 += 1
+                ix1 -= 1
+                jx1 -= 1
+                i = ix0
+                j = jx0
+        if ix0 == jx1:
+            init[i][j] = v
+
+        return init
+
+    def get_value(self, n_list, k):
+        n = len(n_list)
+        if n == 1:
+            return n_list
+        n_list = sorted(n_list)
+
+        import math
+        num_next = math.factorial(n - 1)
+        value_index = k // num_next
+        k_next = k % num_next
+        if k_next == 0:
+            value_index -= 1
+            k_next = num_next
+
+        value = n_list[value_index]
+        result = [value]
+        n_list.remove(value)
+        result += self.get_value(n_list, k_next)
+        return result
+
+    def getPermutation(self, n, k):
+        """
+        :type n: int
+        :type k: int
+        :rtype: str
+        """
+        n_list = list(range(1, n + 1))
+        result = self.get_value(n_list, k)
+        result = [str(x) for x in result]
+        return "".join(result)
+
+    def rotateRight(self, head, k):
+        """
+        :type head: ListNode
+        :type k: int
+        :rtype: ListNode
+        """
+        if head is None:
+            return None
+        if head.next is None:
+            return head
+        count = 1
+        node = head
+        while node.next:
+            count += 1
+            node = node.next
+
+        for i in range(k % count):
+            node = head.next
+            node1 = head
+            while node.next:
+                node1 = node
+                node = node.next
+            node1.next = None
+            node.next = head
+            head = node
+
+        return head
+
+    def uniquePathsWithObstacles(self, obstacleGrid):
+        """
+        :type obstacleGrid: List[List[int]]
+        :rtype: int
+        """
+        if len(obstacleGrid) == 0:
+            return 0
+
+        # 将原有矩阵做转置
+        obstacleGrid2 = []
+        for j in range(len(obstacleGrid[0])):
+            row = []
+            for i in range(len(obstacleGrid)):
+                row.append(obstacleGrid[-i - 1][-j - 1])
+            obstacleGrid2.append(row)
+
+        obstacleGrid = obstacleGrid2
+        nums_row = len(obstacleGrid)
+        nums_col = len(obstacleGrid[0])
+
+        # 计算个点对应的可能个数
+        i = j = 0
+
+        while i < nums_row and j < nums_col:
+            if obstacleGrid[i][j] == 1:
+                obstacleGrid[i][j] = 0
+            elif i == 0:
+                if j == 0:
+                    obstacleGrid[i][j] = 1
+                else:
+                    obstacleGrid[i][j] = obstacleGrid[i][j - 1]
+            elif j == 0:
+                obstacleGrid[i][j] = obstacleGrid[i - 1][j]
+            else:
+                obstacleGrid[i][j] = obstacleGrid[i - 1][j] + obstacleGrid[i][j - 1]
+
+            j2 = j + 1
+            while j2 < nums_col:
+                if obstacleGrid[i][j2] == 1:
+                    obstacleGrid[i][j2] = 0
+                elif i == 0:
+                    obstacleGrid[i][j2] = obstacleGrid[i][j2 - 1]
+                else:
+                    obstacleGrid[i][j2] = obstacleGrid[i][j2 - 1] + obstacleGrid[i - 1][j2]
+                j2 += 1
+            i2 = i + 1
+            while i2 < nums_row:
+                if obstacleGrid[i2][j] == 1:
+                    obstacleGrid[i2][j] = 0
+                elif j == 0:
+                    obstacleGrid[i2][j] = obstacleGrid[i2 - 1][j]
+                else:
+                    obstacleGrid[i2][j] = obstacleGrid[i2][j - 1] + obstacleGrid[i2 - 1][j]
+                i2 += 1
+            i += 1
+            j += 1
+        return obstacleGrid[-1][-1]
+
+    def minPathSum(self, grid):
+        """
+        :type grid: List[List[int]]
+        :rtype: int
+        """
+        if len(grid) == 0:
+            return 0
+
+        # 将原有矩阵做转置
+        obstacleGrid = []
+        for j in range(len(grid[0])):
+            row = []
+            for i in range(len(grid)):
+                row.append(grid[-i - 1][-j - 1])
+            obstacleGrid.append(row)
+
+        nums_row = len(obstacleGrid)
+        nums_col = len(obstacleGrid[0])
+
+        i = j = 0
+
+        while i < nums_row and j < nums_col:
+            if i == 0:
+                if j > 0:
+                    obstacleGrid[i][j] += obstacleGrid[i][j - 1]
+            elif j == 0:
+                obstacleGrid[i][j] += obstacleGrid[i - 1][j]
+            else:
+                obstacleGrid[i][j] += min(obstacleGrid[i - 1][j], obstacleGrid[i][j - 1])
+
+            j2 = j + 1
+            while j2 < nums_col:
+                if i == 0:
+                    obstacleGrid[i][j2] += obstacleGrid[i][j2 - 1]
+                else:
+                    obstacleGrid[i][j2] += min(obstacleGrid[i][j2 - 1], obstacleGrid[i - 1][j2])
+                j2 += 1
+            i2 = i + 1
+            while i2 < nums_row:
+                if j == 0:
+                    obstacleGrid[i2][j] += obstacleGrid[i2 - 1][j]
+                else:
+                    obstacleGrid[i2][j] += min(obstacleGrid[i2][j - 1], obstacleGrid[i2 - 1][j])
+                i2 += 1
+            i += 1
+            j += 1
+        return obstacleGrid[-1][-1]
+
+    def simplifyPath(self, path):
+        """
+        :type path: str
+        :rtype: str
+        """
+        s_list = path.split("/")
+        while "" in s_list:
+            s_list.remove("")
+        while "." in s_list:
+            s_list.remove(".")
+        while ".." in s_list:
+            ix = s_list.index("..")
+            s_list.remove("..")
+            if len(s_list) == 0:
+                return "/"
+            if ix > 0:
+                s_list.pop(ix - 1)
+        return "/" + "/".join(s_list)
+
+    def searchMatrix(self, matrix, target):
+        """
+        :type matrix: List[List[int]]
+        :type target: int
+        :rtype: bool
+        """
+
+        #  最简单情况返回结果
+        if len(matrix) == 0:
+            return False
+        if len(matrix) == 1:
+            if target in matrix[0]:
+                return True
+            else:
+                return False
+        if len(matrix[0]) == 1:
+            tmp = [x[0] for x in matrix]
+            if target in tmp:
+                return True
+            else:
+                return False
+
+        # 若列少于行则转置
+
+        if len(matrix) > len(matrix[0]):
+            obstacleGrid = []
+            for j in range(len(matrix[0])):
+                row = []
+                for i in range(len(matrix)):
+                    row.append(matrix[i][j])
+                obstacleGrid.append(row)
+            matrix = obstacleGrid
+
+        ix = 0
+        if matrix[0][0] == target:
+            return True
+        if matrix[0][0] > target:
+            return False
+        if matrix[-1][-1] < target:
+            return False
+
+        # 选择拆分矩阵的位置
+        num_min = min(len(matrix), len(matrix[0]))
+        for i in range(1, num_min):
+            if matrix[i][i] < target:
+                ix = i
+            elif matrix[i][i] == target:
+                return True
+            else:
+                break
+        matrix1 = []
+        for i in range(ix + 1):
+            matrix1.append(matrix[i][ix + 1:])
+
+        matrix2 = []
+        for i in range(ix + 1, len(matrix)):
+            matrix2.append(matrix[i][:ix + 1])
+
+        res1 = self.searchMatrix(matrix1, target)
+        res2 = self.searchMatrix(matrix2, target)
+
+        if res1 or res2:
+            return True
+        else:
+            return False
+
+    def combine_list(self, n_list, k):
+        result = []
+        if len(n_list) < k or len(n_list) == 0:
+            return [[]]
+        if k == 1:
+            return [[x] for x in n_list]
+        n_list = sorted(n_list)
+        for i in range(len(n_list) - k + 1):
+            result_next = self.combine_list(n_list[i + 1:], k - 1)
+            for res in result_next:
+                result.append([n_list[i]] + res)
+        return result
+
+    def combine(self, n, k):
+        """
+        :type n: int
+        :type k: int
+        :rtype: List[List[int]]
+        """
+        init = list(range(1, n + 1))
+        result = self.combine_list(init, k)
+        return result
+
+    def removeDuplicates(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
+        if len(nums) == 0:
+            return 0
+
+        value = nums[-1]
+        count = 1
+        for i in range(len(nums) - 2, -1, -1):
+            if value == nums[i]:
+                count += 1
+                if count > 2:
+                    nums.pop(i)
+            else:
+                value = nums[i]
+                count = 1
+        return len(nums)
+
+    def find_rotate_point(self, nums):
+        i = 0
+        j = len(nums) - 1
+        middle = (i + j) // 2
+        if j - i <= 1:
+            return i
+
+        if nums[i] > nums[middle]:
+            return self.find_rotate_point(nums[i:middle + 1])
+        elif nums[i] < nums[middle]:
+            return middle + self.find_rotate_point(nums[middle:])
+        else:
+            return 1 + self.find_rotate_point(nums[1:])
+
+    def find_point(self, nums, target):
+
+        if nums[0] > target or nums[-1] < target:
+            return False
+
+        i = 0
+        j = len(nums) - 1
+        middle = (i + j) // 2
+        if i == j:
+            if nums[0] == target:
+                return True
+            else:
+                return False
+        if nums[middle] < target:
+            return self.find_point(nums[middle + 1:], target)
+        elif nums[middle] == target:
+            return True
+        else:
+            return self.find_point(nums[:middle], target)
+
+    def search(self, nums, target):
+        """
+        :type nums: List[int]
+        :type target: int
+        :rtype: bool
+        """
+        if len(nums) == 0:
+            return False
+        if len(nums) == 1:
+            if target in nums:
+                return True
+            else:
+                return False
+
+        # 找到旋转点
+        ix = self.find_rotate_point(nums)
+
+        #  分别对有序数组二分查找
+        res1 = self.find_point(nums[:ix + 1], target)
+        res2 = self.find_point(nums[ix + 1:], target)
+        if res1 or res2:
+            return True
+        else:
+            return False
+
+    def deleteDuplicates(self, head):
+        """
+        :type head: ListNode
+        :rtype: ListNode
+        """
+        if head is None:
+            return None
+
+        node_last = None
+        node = head
+        tmp = head.val
+
+        if head.next and head.next.val == tmp:
+            node2 = head.next
+            while node2 and node2.val == tmp:
+                node2 = node2.next
+            return self.deleteDuplicates(node2)
+
+        while node and node.next:
+            node_next = node.next
+            is_duplicate = False
+            while node_next and node_next.val == tmp:
+                node_next = node_next.next
+                is_duplicate = True
+            if is_duplicate:
+                node_last.next = node_next
+            else:
+                node_last = node
+            if node_next:
+                tmp = node_next.val
+                node = node_next
+            else:
+                node = None
+
+        return head
+
+    def partition(self, head, x):
+        """
+        :type head: ListNode
+        :type x: int
+        :rtype: ListNode
+        """
+        node = head
+        res1 = []
+        res2 = []
+        while node:
+            if node.val < x:
+                res1.append(node)
+            else:
+                res2.append(node)
+            node = node.next
+        res = (res1 + res2)[::-1]
+        if len(res) == 0:
+            return None
+        if len(res) == 1:
+            return res[0]
+        res[0].next = None
+        for i in range(1, len(res)):
+            res[i].next = res[i-1]
+        return res[-1]
+
