@@ -4,6 +4,13 @@ class ListNode:
         self.next = None
 
 
+class TreeNode(object):
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+
+
 class Solution:
     # ZigZag Conversion
     def get_poped_result(self, result, s_list, sep):
@@ -788,6 +795,352 @@ class Solution:
             return res[0]
         res[0].next = None
         for i in range(1, len(res)):
-            res[i].next = res[i-1]
+            res[i].next = res[i - 1]
         return res[-1]
 
+    def grayCode(self, n):
+        """
+        :type n: int
+        :rtype: List[int]
+        """
+        if n < 1:
+            return []
+
+        init = ["0", "1"]
+        if n == 1:
+            return init
+
+        count = 1
+        while count < n:
+            res = []
+            for v in init:
+                res.append("0" + v)
+            for v in init[::-1]:
+                res.append("1" + v)
+            init = res
+            count += 1
+
+        result = [int(x, 2) for x in init]
+        return result
+
+    def subsetsWithDup(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[List[int]]
+        """
+        if len(nums) == 0:
+            return [[]]
+
+        if len(nums) == 1:
+            return [[], nums]
+
+        nums = sorted(nums)
+        res = []
+        for i in range(len(nums)):
+            res_next = self.subsetsWithDup(nums[i + 1:])
+            for re in res_next:
+                res.append([nums[i]] + re)
+
+        result = [[]]
+        for re in res:
+            if re not in result:
+                result.append(re)
+
+        return result
+
+    def numDecodings(self, s):
+        """
+        :type s: str
+        :rtype: int
+        """
+
+        if len(s) == 0 or s[0] == "0":
+            return 0
+
+        if len(s) == 1:
+            return 1
+
+        ways = [0, 1]
+
+        for i in range(len(s) - 1, -1, -1):
+            if s[i] == "0":
+                ways.append(0)
+            elif len(s[i:i + 2]) == 0 or int(s[i:i + 2]) <= 26:
+                count = ways[-2] + ways[-1]
+                ways.append(count)
+            else:
+                ways.append(ways[-1])
+        return ways[-1]
+
+    def reverseBetween(self, head, m, n):
+        """
+        :type head: ListNode
+        :type m: int
+        :type n: int
+        :rtype: ListNode
+        """
+        if head is None:
+            return None
+
+        node = head
+        node12 = head
+        node22 = head
+        index = 1
+
+        while index < m:
+            node12 = node
+            node22 = node.next
+            node = node22
+            index += 1
+
+        if node22.next:
+            node21 = node22.next
+        else:
+            node21 = node22
+        node31 = node21.next
+        if m == n:
+            node21 = node22
+            node = node21
+        else:
+            node = node22
+            while index < n:
+                node22.next = node31
+                node21.next = node
+                node = node21
+                node21 = node31
+                if node31:
+                    node31 = node31.next
+                index += 1
+
+        if m == 1:
+            return node
+        else:
+            node12.next = node
+            return head
+
+    def isIpAddress(self, s, n):
+        if len(s) == 0:
+            return [None]
+        if n == 1:
+            if s[0] == "0":
+                if s == "0":
+                    return [[s]]
+                else:
+                    return [None]
+            else:
+                if int(s) <= 255:
+                    return [[s]]
+                else:
+                    return [None]
+
+        result = []
+        s_list = list(s)
+        for i in range(min(len(s), 3)):
+            if s_list[0] == "0" and i > 0:
+                continue
+            if int("".join(s_list[:i + 1])) > 255:
+                continue
+            res_list = self.isIpAddress("".join(s_list[i + 1:]), n - 1)
+            for res in res_list:
+                if res:
+                    result.append(["".join(s_list[:i + 1])] + res)
+        return result
+
+    def restoreIpAddresses(self, s):
+        """
+        :type s: str
+        :rtype: List[str]
+        """
+        if len(s) < 4:
+            return []
+        res = self.isIpAddress(s, 4)
+        result = [".".join(x) for x in res]
+        return result
+
+    def generateTreeList(self, nums):
+
+        if len(nums) == 0:
+            return [None]
+        if len(nums) == 1:
+            return [TreeNode(nums[0])]
+        result = []
+        for i in range(len(nums)):
+            trees_left = self.generateTreeList(nums[:i])
+            trees_right = self.generateTreeList(nums[i + 1:])
+            for tree_left in trees_left:
+                for tree_right in trees_right:
+                    tree = TreeNode(nums[i])
+                    tree.left = tree_left
+                    tree.right = tree_right
+                    result.append(tree)
+        return result
+
+    def generateTrees(self, n):
+        """
+        :type n: int
+        :rtype: List[TreeNode]
+        """
+        if n == 0:
+            return []
+        nums = list(range(1, n + 1))
+        return self.generateTreeList(nums)
+
+    def numTrees(self, n):
+        """
+        :type n: int
+        :rtype: int
+        """
+        res = [1, 1]
+        if n <= 1:
+            return res[n]
+
+        for i in range(2, n + 1):
+            tmp = 0
+            for j in range(i):
+                tmp += res[j] * res[i - 1 - j]
+            res.append(tmp)
+        return res[-1]
+
+    def sortedListToBST(self, head):
+        """
+        :type head: ListNode
+        :rtype: TreeNode
+        """
+
+        if head is None:
+            return None
+
+        # 计算链表对应子节点个数
+        node = head
+        num = 1
+        while node.next:
+            num += 1
+            node = node.next
+
+        # 子问题对应解决方案
+        if num == 1:
+            return TreeNode(node.val)
+        if num == 2:
+            node_left = TreeNode(head.val)
+            node_root = TreeNode(node.val)
+            node_root.left = node_left
+            return node_root
+
+        # 链表分拆递归求解
+        middle = num // 2
+        count = 1
+        node = head
+        node_parent = None
+        while count <= middle:
+            node_parent = node
+            node = node.next
+            count += 1
+
+        node_parent.next = None
+        list_left = head
+        list_right = node.next
+        node_root = TreeNode(node.val)
+        node_root.left = self.sortedListToBST(list_left)
+        node_root.right = self.sortedListToBST(list_right)
+
+        return node_root
+
+    def pathSum(self, root, sum):
+        """
+        :type root: TreeNode
+        :type sum: int
+        :rtype: List[List[int]]
+        """
+        if root is None:
+            return []
+
+        if root.left is None and root.right is None:
+            if root.val == sum:
+                return [[sum]]
+            else:
+                return []
+
+        result = []
+        root_val = root.val
+        if root.left:
+            results_left = self.pathSum(root.left, sum - root_val)
+            for res in results_left:
+                result.append([root_val] + res)
+        if root.right:
+            results_right = self.pathSum(root.right, sum - root_val)
+            for res in results_right:
+                result.append([root_val] + res)
+        return result
+
+    def flatten(self, root):
+        """
+        :type root: TreeNode
+        :rtype: void Do not return anything, modify root in-place instead.
+        """
+        if root is not None:
+            self.flatten(root.left)
+            self.flatten(root.right)
+            if root.left:
+                node = root.left
+                while node.right:
+                    node = node.right
+                node.right = root.right
+                root.right = root.left
+                root.left = None
+
+    def minimumTotal(self, triangle):
+        """
+        :type triangle: List[List[int]]
+        :rtype: int
+        """
+        if len(triangle) == 0:
+            return 0
+        if len(triangle) == 1:
+            return triangle[0][0]
+
+        for i in range(2, len(triangle) + 1):
+            tmp = triangle[-i]
+            for j in range(len(tmp)):
+                tmp[j] += min(triangle[-i + 1][j], triangle[-i + 1][j + 1])
+        return triangle[0][0]
+
+    def canTransformList(self, word):
+        result = {word}
+        for i in range(len(word)):
+            for cx in range(ord("a"), ord("z") + 1):
+                result.add(word[:i] + chr(cx) + word[i + 1:])
+        result.remove(word)
+        return result
+
+    def ladderLength(self, beginWord, endWord, wordList):
+        """
+        :type beginWord: str
+        :type endWord: str
+        :type wordList: List[str]
+        :rtype: int
+        """
+        if endWord not in wordList:
+            return 0
+
+        word_dict = {endWord}
+        for x in wordList:
+            word_dict.add(x)
+        level = 1
+        words = [endWord]
+        while len(words) > 0:
+            transform_list = []
+            for word in words:
+                transform_list += self.canTransformList(word)
+            words = []
+            level += 1
+            for trans in transform_list:
+                if trans == beginWord:
+                    return level
+                if trans in word_dict:
+                    words.append(trans)
+        return 0
+
+
+
+c = Solution().minSubArrayLen(4,[1,4,4])
+print(c)
